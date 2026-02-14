@@ -37,22 +37,10 @@ export class BaseNode extends EventEmitter {
       return this
     }
 
-    const {
-      zIndex,
-      overflow,
-      ...vars
-    } = tween
-
     this.emit('beforeUpdate', tween)
 
-    if (zIndex !== undefined) {
-      this.container.style.zIndex = String(zIndex)
-    }
-    if (overflow !== undefined) {
-      this.container.style.overflow = String(overflow)
-    }
+    gsap.set(this.container, tween)
 
-    gsap.set(this.container, vars)
     this.emit('afterUpdate', tween)
     Logger.debug(`Node set: ${this.id}`, tween)
 
@@ -65,24 +53,11 @@ export class BaseNode extends EventEmitter {
       return this
     }
 
-    const {
-      zIndex,
-      overflow,
-      ...vars
-    } = tween
-
     this.emit('beforeUpdate', tween)
     this.enableWillChange()
 
-    if (zIndex !== undefined) {
-      this.container.style.zIndex = String(zIndex)
-    }
-    if (overflow !== undefined) {
-      this.container.style.overflow = String(overflow)
-    }
-
     gsap.to(this.container, {
-      ...vars,
+      ...tween,
       overwrite: 'auto',
       onStart: () => {
         this.emit('animationStart', tween)

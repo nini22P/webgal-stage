@@ -194,11 +194,15 @@ nameBox.container.appendChild(nameDiv)
 
 function cameraEffect(effect: 'shake' | 'zoom-in' | 'zoom-out' | 'pan-left' | 'pan-right' | 'reset') {
   if (effect === 'shake') {
-    camera.to({ rotation: 2, duration: 0.05 })
-    setTimeout(() => camera.to({ rotation: -2, duration: 0.05 }), 50)
-    setTimeout(() => camera.to({ rotation: 1, duration: 0.05 }), 100)
-    setTimeout(() => camera.to({ rotation: -1, duration: 0.05 }), 150)
-    setTimeout(() => camera.to({ rotation: 0, duration: 0.1 }), 200)
+    camera.to({
+      keyframes: [
+        { rotation: 2, duration: 0.05 },
+        { rotation: -2, duration: 0.05 },
+        { rotation: 1, duration: 0.05 },
+        { rotation: -1, duration: 0.05 },
+        { rotation: 0, duration: 0.1 },
+      ]
+    })
   } else if (effect === 'zoom-in') {
     camera.to({ scale: 1.2, duration: 0.5 })
   } else if (effect === 'zoom-out') {
