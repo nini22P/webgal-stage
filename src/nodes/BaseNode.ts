@@ -11,7 +11,7 @@ export interface BaseNodeProps {
 }
 
 export class BaseNode extends EventEmitter {
-  public container: HTMLElement
+  public element: HTMLElement
   public id: string
 
   private animationCount = 0
@@ -20,9 +20,9 @@ export class BaseNode extends EventEmitter {
   constructor({ type = 'base', id, tween }: BaseNodeProps) {
     super()
     this.id = id
-    this.container = document.createElement('div')
-    this.container.id = `${type}:${id}`
-    this.container.style.position = 'absolute'
+    this.element = this.createElement()
+    this.element.id = `${type}:${id}`
+    this.element.style.position = 'absolute'
 
     Logger.debug(`Node created: ${type}:${id}`)
 
@@ -39,7 +39,7 @@ export class BaseNode extends EventEmitter {
 
     this.emit('beforeUpdate', tween)
 
-    gsap.set(this.container, tween)
+    gsap.set(this.element, tween)
 
     this.emit('afterUpdate', tween)
     Logger.debug(`Node set: ${this.id}`, tween)
@@ -56,7 +56,7 @@ export class BaseNode extends EventEmitter {
     this.emit('beforeUpdate', tween)
     this.enableWillChange()
 
-    gsap.to(this.container, {
+    gsap.to(this.element, {
       ...tween,
       overwrite: 'auto',
       onStart: () => {
@@ -82,14 +82,14 @@ export class BaseNode extends EventEmitter {
   }
 
   public addNode(node: BaseNode): this {
-    this.container.appendChild(node.container)
+    this.element.appendChild(node.element)
     Logger.debug(`Node added: ${node.id} to ${this.id}`)
     return this
   }
 
   public removeNode(node: BaseNode): this {
-    if (node.container.parentElement === this.container) {
-      this.container.removeChild(node.container)
+    if (node.element.parentElement === this.element) {
+      this.element.removeChild(node.element)
       Logger.debug(`Node removed: ${node.id} from ${this.id}`)
     }
     return this
@@ -97,7 +97,7 @@ export class BaseNode extends EventEmitter {
 
   private enableWillChange(): void {
     if (this.animationCount === 0) {
-      this.container.style.willChange = 'transform, opacity'
+      this.element.style.willChange = 'transform, opacity'
     }
     this.animationCount++
   }
@@ -106,8 +106,12 @@ export class BaseNode extends EventEmitter {
     this.animationCount--
     if (this.animationCount <= 0) {
       this.animationCount = 0
-      this.container.style.willChange = 'auto'
+      this.element.style.willChange = 'auto'
     }
+  }
+
+  protected createElement(): HTMLElement {
+    return document.createElement('div')
   }
 
   public destroy(): void {
@@ -117,9 +121,9 @@ export class BaseNode extends EventEmitter {
 
     this.emit('beforeDestroy')
 
-    gsap.killTweensOf(this.container)
+    gsap.killTweensOf(this.element)
 
-    this.container.remove()
+    this.element.remove()
 
     this.clear()
 

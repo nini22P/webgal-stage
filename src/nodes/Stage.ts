@@ -39,7 +39,7 @@ export class Stage extends BaseNode {
     })
 
     this.config = config
-    this.setupStageContainer()
+    this.setupStage()
     this.updateLayout()
 
     this.resizeObserver = new ResizeObserver(() => {
@@ -57,10 +57,10 @@ export class Stage extends BaseNode {
     Logger.info('Stage initialized successfully')
   }
 
-  private setupStageContainer(): void {
-    this.container.style.position = 'absolute'
-    this.container.style.transformOrigin = 'top left'
-    this.config.container.appendChild(this.container)
+  private setupStage(): void {
+    this.element.style.position = 'absolute'
+    this.element.style.transformOrigin = 'top left'
+    this.config.container.appendChild(this.element)
   }
 
   private updateLayout(): void {
@@ -77,7 +77,7 @@ export class Stage extends BaseNode {
     const offsetX = (containerWidth - scaledWidth) / 2
     const offsetY = (containerHeight - scaledHeight) / 2
 
-    gsap.set(this.container, {
+    gsap.set(this.element, {
       width: width,
       height: height,
       x: offsetX,
