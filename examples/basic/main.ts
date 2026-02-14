@@ -1,4 +1,4 @@
-﻿import { Stage, BaseNode } from '../../src/index';
+﻿import { Stage, BaseNode } from '../../src/index'
 
 const stage = new Stage({
   container: document.getElementById('app')!,
@@ -8,7 +8,7 @@ const stage = new Stage({
   tween: {
     backgroundColor: '#000000',
   }
-});
+})
 
 const camera = new BaseNode({
   id: 'camera',
@@ -21,9 +21,9 @@ const camera = new BaseNode({
     overflow: 'visible',
     zIndex: 1,
   }
-});
+})
 
-stage.addNode(camera);
+stage.addNode(camera)
 
 const background = new BaseNode({
   id: 'background',
@@ -35,15 +35,15 @@ const background = new BaseNode({
     backgroundColor: '#1a1a2e',
     opacity: 0,
   }
-});
+})
 
-camera.addNode(background);
+camera.addNode(background)
 
 background.container.style.background = `
   radial-gradient(ellipse at center, #2d3748 0%, #1a1a2e 70%)
-`;
+`
 
-const DEBUG_MODE = false;
+const DEBUG_MODE = false
 if (DEBUG_MODE) {
   const viewportBorder = new BaseNode({
     id: 'viewport-border',
@@ -55,13 +55,13 @@ if (DEBUG_MODE) {
       opacity: 1,
       zIndex: 100,
     }
-  });
-  camera.addNode(viewportBorder);
-  viewportBorder.container.style.border = '3px dashed rgba(255, 0, 0, 0.5)';
-  viewportBorder.container.style.pointerEvents = 'none';
+  })
+  camera.addNode(viewportBorder)
+  viewportBorder.container.style.border = '3px dashed rgba(255, 0, 0, 0.5)'
+  viewportBorder.container.style.pointerEvents = 'none'
 
-  const label = document.createElement('div');
-  label.textContent = '舞台可视区域 (1920x1080)';
+  const label = document.createElement('div')
+  label.textContent = '舞台可视区域 (1920x1080)'
   label.style.cssText = `
     position: absolute;
     top: 10px;
@@ -72,8 +72,8 @@ if (DEBUG_MODE) {
     background: rgba(0, 0, 0, 0.5);
     padding: 5px 10px;
     border-radius: 3px;
-  `;
-  viewportBorder.container.appendChild(label);
+  `
+  viewportBorder.container.appendChild(label)
 }
 
 const characterLeft = new BaseNode({
@@ -86,8 +86,8 @@ const characterLeft = new BaseNode({
     backgroundColor: '#4a5568',
     opacity: 0,
   }
-});
-camera.addNode(characterLeft);
+})
+camera.addNode(characterLeft)
 
 const characterRight = new BaseNode({
   id: 'character-right',
@@ -99,8 +99,8 @@ const characterRight = new BaseNode({
     backgroundColor: '#718096',
     opacity: 0,
   }
-});
-camera.addNode(characterRight);
+})
+camera.addNode(characterRight)
 
 const dialogBox = new BaseNode({
   id: 'dialog-box',
@@ -114,11 +114,11 @@ const dialogBox = new BaseNode({
     zIndex: 10,
     overflow: 'visible',
   }
-});
-stage.addNode(dialogBox);
+})
+stage.addNode(dialogBox)
 
-dialogBox.container.style.border = '3px solid rgba(255, 255, 255, 0.3)';
-dialogBox.container.style.boxShadow = '0 0 20px rgba(0, 0, 0, 0.5)';
+dialogBox.container.style.border = '3px solid rgba(255, 255, 255, 0.3)'
+dialogBox.container.style.boxShadow = '0 0 20px rgba(0, 0, 0, 0.5)'
 
 const nameBox = new BaseNode({
   id: 'name-box',
@@ -130,10 +130,10 @@ const nameBox = new BaseNode({
     backgroundColor: 'rgba(74, 85, 104, 0.9)',
     zIndex: 1,
   }
-});
-dialogBox.addNode(nameBox);
+})
+dialogBox.addNode(nameBox)
 
-nameBox.container.style.border = '2px solid rgba(255, 255, 255, 0.3)';
+nameBox.container.style.border = '2px solid rgba(255, 255, 255, 0.3)'
 
 const lightEffect1 = new BaseNode({
   id: 'light-1',
@@ -145,10 +145,10 @@ const lightEffect1 = new BaseNode({
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     opacity: 0,
   }
-});
-camera.addNode(lightEffect1);
-lightEffect1.container.style.borderRadius = '50%';
-lightEffect1.container.style.filter = 'blur(40px)';
+})
+camera.addNode(lightEffect1)
+lightEffect1.container.style.borderRadius = '50%'
+lightEffect1.container.style.filter = 'blur(40px)'
 
 const lightEffect2 = new BaseNode({
   id: 'light-2',
@@ -160,12 +160,12 @@ const lightEffect2 = new BaseNode({
     backgroundColor: 'rgba(255, 200, 150, 0.05)',
     opacity: 0,
   }
-});
-camera.addNode(lightEffect2);
-lightEffect2.container.style.borderRadius = '50%';
-lightEffect2.container.style.filter = 'blur(40px)';
+})
+camera.addNode(lightEffect2)
+lightEffect2.container.style.borderRadius = '50%'
+lightEffect2.container.style.filter = 'blur(40px)'
 
-const textDiv = document.createElement('div');
+const textDiv = document.createElement('div')
 textDiv.style.cssText = `
   position: absolute;
   left: 40px;
@@ -175,10 +175,10 @@ textDiv.style.cssText = `
   font-size: 28px;
   line-height: 1.8;
   padding: 20px;
-`;
-dialogBox.container.appendChild(textDiv);
+`
+dialogBox.container.appendChild(textDiv)
 
-const nameDiv = document.createElement('div');
+const nameDiv = document.createElement('div')
 nameDiv.style.cssText = `
   position: absolute;
   width: 200px;
@@ -189,26 +189,26 @@ nameDiv.style.cssText = `
   display: flex;
   align-items: center;
   justify-content: center;
-`;
-nameBox.container.appendChild(nameDiv);
+`
+nameBox.container.appendChild(nameDiv)
 
 function cameraEffect(effect: 'shake' | 'zoom-in' | 'zoom-out' | 'pan-left' | 'pan-right' | 'reset') {
   if (effect === 'shake') {
-    camera.to({ rotation: 2, duration: 0.05 });
-    setTimeout(() => camera.to({ rotation: -2, duration: 0.05 }), 50);
-    setTimeout(() => camera.to({ rotation: 1, duration: 0.05 }), 100);
-    setTimeout(() => camera.to({ rotation: -1, duration: 0.05 }), 150);
-    setTimeout(() => camera.to({ rotation: 0, duration: 0.1 }), 200);
+    camera.to({ rotation: 2, duration: 0.05 })
+    setTimeout(() => camera.to({ rotation: -2, duration: 0.05 }), 50)
+    setTimeout(() => camera.to({ rotation: 1, duration: 0.05 }), 100)
+    setTimeout(() => camera.to({ rotation: -1, duration: 0.05 }), 150)
+    setTimeout(() => camera.to({ rotation: 0, duration: 0.1 }), 200)
   } else if (effect === 'zoom-in') {
-    camera.to({ scale: 1.2, duration: 0.5 });
+    camera.to({ scale: 1.2, duration: 0.5 })
   } else if (effect === 'zoom-out') {
-    camera.to({ scale: 0.85, duration: 0.5 });
+    camera.to({ scale: 0.85, duration: 0.5 })
   } else if (effect === 'pan-left') {
-    camera.to({ x: 180, duration: 0.5 });
+    camera.to({ x: 180, duration: 0.5 })
   } else if (effect === 'pan-right') {
-    camera.to({ x: -180, duration: 0.5 });
+    camera.to({ x: -180, duration: 0.5 })
   } else if (effect === 'reset') {
-    camera.to({ scale: 1, x: 0, y: 0, rotation: 0, duration: 0.5 });
+    camera.to({ scale: 1, x: 0, y: 0, rotation: 0, duration: 0.5 })
   }
 }
 
@@ -272,60 +272,60 @@ const script: ScriptLine[] = [
     camera: 'reset',
     bgColor: '#ff9a76'
   },
-];
+]
 
-let currentLine = 0;
+let currentLine = 0
 
 function showDialog(index: number) {
   if (index >= script.length) {
-    textDiv.textContent = '故事结束 - 点击刷新重新开始';
-    nameDiv.textContent = '';
-    stage.container.addEventListener('click', () => location.reload(), { once: true });
-    return;
+    textDiv.textContent = '故事结束 - 点击刷新重新开始'
+    nameDiv.textContent = ''
+    stage.container.addEventListener('click', () => location.reload(), { once: true })
+    return
   }
 
-  const line = script[index];
-  nameDiv.textContent = line.name;
-  textDiv.textContent = line.text;
+  const line = script[index]
+  nameDiv.textContent = line.name
+  textDiv.textContent = line.text
 
   if (line.left === 'show') {
-    characterLeft.to({ opacity: 1, scale: 1.05, duration: 0.3 });
-    characterRight.to({ opacity: 0.5, scale: 1, duration: 0.3 });
+    characterLeft.to({ opacity: 1, scale: 1.05, duration: 0.3 })
+    characterRight.to({ opacity: 0.5, scale: 1, duration: 0.3 })
   } else if (line.left === 'dim') {
-    characterLeft.to({ opacity: 0.5, scale: 1, duration: 0.3 });
+    characterLeft.to({ opacity: 0.5, scale: 1, duration: 0.3 })
   } else if (line.left === 'hide') {
-    characterLeft.to({ opacity: 0, duration: 0.3 });
+    characterLeft.to({ opacity: 0, duration: 0.3 })
   }
 
   if (line.right === 'show') {
-    characterRight.to({ opacity: 1, scale: 1.05, duration: 0.3 });
-    characterLeft.to({ opacity: 0.5, scale: 1, duration: 0.3 });
+    characterRight.to({ opacity: 1, scale: 1.05, duration: 0.3 })
+    characterLeft.to({ opacity: 0.5, scale: 1, duration: 0.3 })
   } else if (line.right === 'dim') {
-    characterRight.to({ opacity: 0.5, scale: 1, duration: 0.3 });
+    characterRight.to({ opacity: 0.5, scale: 1, duration: 0.3 })
   } else if (line.right === 'hide') {
-    characterRight.to({ opacity: 0, duration: 0.3 });
+    characterRight.to({ opacity: 0, duration: 0.3 })
   }
 
   if (line.camera) {
-    cameraEffect(line.camera);
+    cameraEffect(line.camera)
   }
 
   if (line.bgColor) {
-    background.to({ background: line.bgColor, duration: 1 });
+    background.to({ background: line.bgColor, duration: 1 })
   }
 }
 
-background.to({ opacity: 1, duration: 1 });
+background.to({ opacity: 1, duration: 1 })
 setTimeout(() => {
-  lightEffect1.to({ opacity: 1, duration: 2 });
-  lightEffect2.to({ opacity: 1, duration: 2 });
-}, 300);
+  lightEffect1.to({ opacity: 1, duration: 2 })
+  lightEffect2.to({ opacity: 1, duration: 2 })
+}, 300)
 setTimeout(() => {
-  dialogBox.to({ opacity: 1, duration: 2 });
-}, 500);
-setTimeout(() => showDialog(0), 1000);
+  dialogBox.to({ opacity: 1, duration: 2 })
+}, 500)
+setTimeout(() => showDialog(0), 1000)
 
 stage.container.addEventListener('click', () => {
-  currentLine++;
-  showDialog(currentLine);
-});
+  currentLine++
+  showDialog(currentLine)
+})

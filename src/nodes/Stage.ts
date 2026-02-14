@@ -1,6 +1,6 @@
-import gsap from 'gsap';
-import { Logger, LogLevel } from '../utils/Logger';
-import { BaseNode, type BaseNodeProps } from './BaseNode';
+import gsap from 'gsap'
+import { Logger, LogLevel } from '../utils/Logger'
+import { BaseNode, type BaseNodeProps } from './BaseNode'
 
 export interface StageConfig extends Omit<BaseNodeProps, 'id' | 'type'> {
   container: HTMLElement;
@@ -10,9 +10,9 @@ export interface StageConfig extends Omit<BaseNodeProps, 'id' | 'type'> {
 }
 
 export class Stage extends BaseNode {
-  private config: StageConfig;
-  private resizeObserver: ResizeObserver;
-  private resizeTimer: number | null = null;
+  private config: StageConfig
+  private resizeObserver: ResizeObserver
+  private resizeTimer: number | null = null
 
   constructor(config: StageConfig) {
     super({
@@ -26,56 +26,56 @@ export class Stage extends BaseNode {
         overflow: 'hidden',
         userSelect: 'none',
       }
-    });
+    })
 
     if (config.debug) {
-      Logger.setLevel(LogLevel.DEBUG);
+      Logger.setLevel(LogLevel.DEBUG)
     }
 
     Logger.info('Stage initializing...', {
       width: config.width,
       height: config.height,
       debug: config.debug
-    });
+    })
 
-    this.config = config;
-    this.setupStageContainer();
-    this.updateLayout();
+    this.config = config
+    this.setupStageContainer()
+    this.updateLayout()
 
     this.resizeObserver = new ResizeObserver(() => {
       if (this.resizeTimer !== null) {
-        cancelAnimationFrame(this.resizeTimer);
+        cancelAnimationFrame(this.resizeTimer)
       }
       this.resizeTimer = requestAnimationFrame(() => {
-        this.updateLayout();
-        this.resizeTimer = null;
-      });
-    });
-    this.resizeObserver.observe(config.container);
+        this.updateLayout()
+        this.resizeTimer = null
+      })
+    })
+    this.resizeObserver.observe(config.container)
 
-    this.emit('stageCreated', this);
-    Logger.info('Stage initialized successfully');
+    this.emit('stageCreated', this)
+    Logger.info('Stage initialized successfully')
   }
 
   private setupStageContainer(): void {
-    this.container.style.position = 'absolute';
-    this.container.style.transformOrigin = 'top left';
-    this.config.container.appendChild(this.container);
+    this.container.style.position = 'absolute'
+    this.container.style.transformOrigin = 'top left'
+    this.config.container.appendChild(this.container)
   }
 
   private updateLayout(): void {
-    const { container, width, height } = this.config;
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
+    const { container, width, height } = this.config
+    const containerWidth = container.clientWidth
+    const containerHeight = container.clientHeight
 
-    const scaleX = containerWidth / width;
-    const scaleY = containerHeight / height;
-    const scale = Math.min(scaleX, scaleY);
+    const scaleX = containerWidth / width
+    const scaleY = containerHeight / height
+    const scale = Math.min(scaleX, scaleY)
 
-    const scaledWidth = width * scale;
-    const scaledHeight = height * scale;
-    const offsetX = (containerWidth - scaledWidth) / 2;
-    const offsetY = (containerHeight - scaledHeight) / 2;
+    const scaledWidth = width * scale
+    const scaledHeight = height * scale
+    const offsetX = (containerWidth - scaledWidth) / 2
+    const offsetY = (containerHeight - scaledHeight) / 2
 
     gsap.set(this.container, {
       width: width,
@@ -83,26 +83,26 @@ export class Stage extends BaseNode {
       x: offsetX,
       y: offsetY,
       scale: scale
-    });
+    })
 
-    this.emit('layoutUpdated', { scale, offsetX, offsetY });
-    Logger.debug('Layout updated', { scale, offsetX, offsetY });
+    this.emit('layoutUpdated', { scale, offsetX, offsetY })
+    Logger.debug('Layout updated', { scale, offsetX, offsetY })
   }
 
   public destroy(): void {
-    this.emit('beforeDestroy', this);
-    Logger.info('Destroying stage...');
+    this.emit('beforeDestroy', this)
+    Logger.info('Destroying stage...')
 
     if (this.resizeTimer !== null) {
-      cancelAnimationFrame(this.resizeTimer);
-      this.resizeTimer = null;
+      cancelAnimationFrame(this.resizeTimer)
+      this.resizeTimer = null
     }
 
-    this.resizeObserver.disconnect();
+    this.resizeObserver.disconnect()
 
-    super.destroy();
+    super.destroy()
 
-    Logger.info('Stage destroyed');
+    Logger.info('Stage destroyed')
   }
 }
 

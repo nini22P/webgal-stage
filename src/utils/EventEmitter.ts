@@ -1,49 +1,49 @@
-export type EventCallback = (...args: any[]) => void;
+export type EventCallback = (...args: unknown[]) => void
 
 export class EventEmitter {
-  private events = new Map<string, Set<EventCallback>>();
+  private events = new Map<string, Set<EventCallback>>()
 
   on(event: string, callback: EventCallback): () => void {
     if (!this.events.has(event)) {
-      this.events.set(event, new Set());
+      this.events.set(event, new Set())
     }
-    this.events.get(event)!.add(callback);
+    this.events.get(event)!.add(callback)
 
-    return () => this.off(event, callback);
+    return () => this.off(event, callback)
   }
 
   once(event: string, callback: EventCallback): () => void {
-    const wrappedCallback = (...args: any[]) => {
-      callback(...args);
-      this.off(event, wrappedCallback);
-    };
-    return this.on(event, wrappedCallback);
+    const wrappedCallback = (...args: unknown[]) => {
+      callback(...args)
+      this.off(event, wrappedCallback)
+    }
+    return this.on(event, wrappedCallback)
   }
 
   off(event: string, callback: EventCallback): void {
-    this.events.get(event)?.delete(callback);
+    this.events.get(event)?.delete(callback)
   }
 
-  emit(event: string, ...args: any[]): void {
+  emit(event: string, ...args: unknown[]): void {
     this.events.get(event)?.forEach(cb => {
       try {
-        cb(...args);
+        cb(...args)
       } catch (error) {
-        console.error(`[EventEmitter] Error in event handler for "${event}":`, error);
+        console.error(`[EventEmitter] Error in event handler for "${event}":`, error)
       }
-    });
+    })
   }
 
   clear(): void {
-    this.events.clear();
+    this.events.clear()
   }
 
   clearEvent(event: string): void {
-    this.events.delete(event);
+    this.events.delete(event)
   }
 
   listenerCount(event: string): number {
-    return this.events.get(event)?.size ?? 0;
+    return this.events.get(event)?.size ?? 0
   }
 }
 

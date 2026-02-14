@@ -11,11 +11,11 @@ export default defineConfig({
     },
     rollupOptions: {
       external: ['gsap'],
-      // output: {
-      //   globals: {
-      //     gsap: 'gsap',
-      //   },
-      // },
+      output: {
+        globals: {
+          gsap: 'gsap',
+        },
+      },
     },
     sourcemap: true,
     emptyOutDir: true,
