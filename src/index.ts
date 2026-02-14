@@ -1,5 +1,4 @@
 export { BaseNode, type BaseNodeProps } from './nodes/BaseNode'
 export { Stage, type StageConfig } from './nodes/Stage'
-export { Registry } from './utils/Registry'
 export { Logger, LogLevel } from './utils/Logger'
 export { EventEmitter, type EventCallback } from './utils/EventEmitter'
