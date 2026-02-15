@@ -1,21 +1,21 @@
 import { BaseNode, type BaseNodeProps } from './BaseNode'
 
-export interface SpriteNodeProps extends BaseNodeProps {
+export interface SpriteNodeProps extends Omit<BaseNodeProps, 'type'> {
   src: string;
 }
 
 export class SpriteNode extends BaseNode {
-  constructor({ type = 'sprite', id, src, tween }: SpriteNodeProps) {
+  constructor(props: SpriteNodeProps) {
     super({
-      type,
-      id,
+      type: 'sprite',
+      id: props.id,
       tween: {
-        ...tween,
-        backgroundImage: `url(${src})`,
+        backgroundImage: `url(${props.src})`,
         backgroundSize: 'cover',
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center',
         imageRendering: 'auto',
+        ...props.tween,
       }
     })
   }

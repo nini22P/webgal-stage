@@ -71,8 +71,8 @@ export class Stage extends BaseNode<HTMLElement> {
 
     const scaledWidth = width * scale
     const scaledHeight = height * scale
-    const offsetX = (containerWidth - scaledWidth) / 2
-    const offsetY = (containerHeight - scaledHeight) / 2
+    const offsetX = Math.round((containerWidth - scaledWidth) / 2)
+    const offsetY = Math.round((containerHeight - scaledHeight) / 2)
 
     gsap.set(this.element, {
       width: width,

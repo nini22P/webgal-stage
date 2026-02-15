@@ -1,4 +1,4 @@
-export { BaseNode, type BaseNodeProps } from './nodes/BaseNode'
+export { BaseNode, type BaseNodeProps, type Tween } from './nodes/BaseNode'
 export { Stage, type StageConfig } from './nodes/Stage'
 export { SpriteNode, type SpriteNodeProps } from './nodes/SpriteNode'
 export { VideoNode, type VideoNodeProps } from './nodes/VideoNode'
