@@ -1,30 +1,23 @@
 import gsap from 'gsap'
 import { Logger, LogLevel } from '../utils/Logger'
-import { BaseNode, type BaseNodeEvents, type BaseNodeProps } from './BaseNode'
+import { BaseNode, type BaseNodeProps } from './BaseNode'
 
-export interface StageConfig extends Omit<BaseNodeProps, 'id' | 'type'> {
+export interface StageConfig extends Omit<BaseNodeProps, 'type'> {
   container: HTMLElement;
   width: number;
   height: number;
   debug?: boolean;
 }
 
-export type StageEvents = BaseNodeEvents & {
-  stageCreated: [Stage];
-  stageDestroying: [Stage];
-  stageDestroyed: [Stage];
-  layoutUpdated: [{ scale: number; offsetX: number; offsetY: number }];
-};
-
-export class Stage extends BaseNode<HTMLElement, StageEvents> {
-  private config: StageConfig
+export class Stage extends BaseNode<HTMLElement> {
+  public config: StageConfig
   private resizeObserver: ResizeObserver
   private resizeTimer: number | null = null
 
   constructor(config: StageConfig) {
     super({
       type: 'stage',
-      id: 'root',
+      id: config.id,
       tween: {
         ...config.tween,
         x: 0,
@@ -64,7 +57,6 @@ export class Stage extends BaseNode<HTMLElement, StageEvents> {
     })
     this.resizeObserver.observe(config.container)
 
-    this.emit('stageCreated', this)
     Logger.info('Stage created successfully')
   }
 
@@ -90,12 +82,10 @@ export class Stage extends BaseNode<HTMLElement, StageEvents> {
       scale: scale
     })
 
-    this.emit('layoutUpdated', { scale, offsetX, offsetY })
     Logger.debug('Layout updated', { scale, offsetX, offsetY })
   }
 
   public destroy(): void {
-    this.emit('stageDestroying', this)
     Logger.info('Stage destroying...')
 
     if (this.resizeTimer !== null) {
@@ -107,7 +97,6 @@ export class Stage extends BaseNode<HTMLElement, StageEvents> {
 
     super.destroy()
 
-    this.emit('stageDestroyed', this)
     Logger.info('Stage destroyed')
   }
 }
