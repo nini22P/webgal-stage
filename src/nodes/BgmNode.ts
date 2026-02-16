@@ -1,3 +1,4 @@
+import { Howl } from 'howler'
 import gsap from 'gsap'
 import { Logger } from '../utils/Logger'
 import { BaseNode, type BaseNodeProps } from './BaseNode'
@@ -5,18 +6,34 @@ import { BaseNode, type BaseNodeProps } from './BaseNode'
 export type BgmNodeProps = Omit<BaseNodeProps, 'type' | 'tagName'>
 
 export class BgmNode extends BaseNode {
-  private audios: [HTMLAudioElement, HTMLAudioElement]
+  private howls: [Howl | null, Howl | null] = [null, null]
+  private howlSrcs: [string | null, string | null] = [null, null]
+
   private currentIndex: number = 0
   private targetVolume: number = 1
 
+  private preloadedHowl: Howl | null = null
+  private preloadedSrc: string | null = null
+
   constructor(props: BgmNodeProps) {
     super({ ...props, type: 'bgm' })
+  }
 
-    this.audios = [new Audio(), new Audio()]
-    this.audios.forEach(a => {
-      a.preload = 'auto'
-      a.crossOrigin = 'anonymous'
+  public preload(src: string): void {
+    if (!src || src === this.howlSrcs[this.currentIndex] || src === this.preloadedSrc) return
+
+    if (this.preloadedHowl) {
+      this.preloadedHowl.unload()
+    }
+
+    Logger.info(`Preloading BGM: ${src}`)
+    this.preloadedHowl = new Howl({
+      src: [src],
+      html5: true,
+      preload: true,
+      autoplay: false
     })
+    this.preloadedSrc = src
   }
 
   public async play(options: {
@@ -27,63 +44,99 @@ export class BgmNode extends BaseNode {
   } = {}): Promise<void> {
     const fade = options.fade ?? 0
     const volume = options.volume ?? this.targetVolume
-    if (options.volume !== undefined) this.targetVolume = options.volume
+    if (options.volume !== undefined)
+      this.targetVolume = options.volume
 
     if (!options.src) {
-      if (this.audio.src) {
-        this.audio.loop = options.loop ?? this.loop
-        if (this.audio.paused) {
-          this.audio.volume = 0
-          await this.audio.play()
+      const current = this.activeHowl
+      if (current) {
+        current.loop(options.loop ?? current.loop())
+        if (!current.playing()) {
+          current.volume(0)
+          current.play()
         }
-        return await this.setAudio({ audio: this.audio, volume, fade })
+        return await this.setHowl(current, volume, fade)
       }
       return
     }
 
     const oldIndex = this.currentIndex
     const newIndex = (this.currentIndex + 1) % 2
-    const oldAudio = this.audios[oldIndex]
-    const newAudio = this.audios[newIndex]
+    const oldHowl = this.howls[oldIndex]
 
-    newAudio.src = options.src
-    newAudio.loop = options.loop ?? this.loop
-    newAudio.volume = fade > 0 ? 0 : volume
+    let newHowl: Howl
 
-    newAudio.load()
-    await new Promise((resolve) => {
-      newAudio.addEventListener('canplaythrough', resolve, { once: true })
-    })
+    if (options.src === this.preloadedSrc && this.preloadedHowl) {
+      newHowl = this.preloadedHowl
+      this.preloadedHowl = null
+      this.preloadedSrc = null
+    } else {
+      if (this.preloadedHowl) {
+        this.preloadedHowl.unload()
+        this.preloadedHowl = null
+        this.preloadedSrc = null
+      }
+
+      newHowl = new Howl({
+        src: [options.src],
+        html5: true,
+        preload: true,
+        autoplay: false
+      })
+    }
+
+    newHowl.loop(options.loop ?? true)
+    newHowl.volume(fade > 0 ? 0 : volume)
 
     try {
-      await newAudio.play()
+      await new Promise((resolve, reject) => {
+        if (newHowl.state() === 'loaded')
+          resolve(true)
+        else {
+          newHowl.once('load', () => resolve(true))
+          newHowl.once('loaderror', (_, e) => reject(e))
+          setTimeout(() => reject(new Error('BGM Load Timeout')), 10000)
+        }
+      })
+      newHowl.play()
     } catch (e) {
       Logger.error('Playback error:', e)
-      this.stopAudio(newAudio)
+      newHowl.unload()
       return
     }
 
+    this.howls[newIndex] = newHowl
+    this.howlSrcs[newIndex] = options.src
     this.currentIndex = newIndex
 
     if (fade > 0) {
-      this.setAudio({ audio: oldAudio, volume: 0, fade, stopOnEnd: true })
-      this.setAudio({ audio: newAudio, volume: volume, fade })
+      if (oldHowl)
+        this.setHowl(oldHowl, 0, fade, true)
+      this.setHowl(newHowl, volume, fade)
     } else {
-      this.stopAudio(oldAudio)
+      if (oldHowl)
+        this.destroyHowl(oldIndex)
+      newHowl.volume(volume)
     }
   }
 
   public async pause(fade: number = 0): Promise<void> {
-    await this.setAudio({ audio: this.audio, volume: 0, fade, pauseOnEnd: true })
+    if (this.activeHowl) {
+      await this.setHowl(this.activeHowl, 0, fade, false, true)
+    }
   }
 
   public async stop(fade: number = 0): Promise<void> {
-    await this.setAudio({ audio: this.audio, volume: 0, fade, stopOnEnd: true })
+    if (this.activeHowl) {
+      await this.setHowl(this.activeHowl, 0, fade, true)
+    }
   }
 
   public async fade(volume: number, fade: number = 0): Promise<void> {
     this.targetVolume = volume
-    return await this.setAudio({ audio: this.audio, volume, fade })
+    if (this.activeHowl) {
+      return await this.setHowl(this.activeHowl, volume, fade)
+    }
   }
 
   public async resume(fade: number = 0): Promise<void> {
@@ -91,74 +144,90 @@ export class BgmNode extends BaseNode {
   }
 
   public async seek(time: number): Promise<void> {
-    this.audio.currentTime = time
+    this.activeHowl?.seek(time)
   }
 
-  private get audio() { return this.audios[this.currentIndex] }
+  private get activeHowl() { return this.howls[this.currentIndex] }
 
-  public get volume() { return this.audio.volume }
-  public set volume(volume: number) {
-    this.targetVolume = volume
-    gsap.killTweensOf(this.audio, 'volume')
-    this.audio.volume = Math.max(0, Math.min(1, volume))
+  public get volume() { return this.activeHowl?.volume() ?? 0 }
+  public set volume(v: number) {
+    this.targetVolume = v
+    if (this.activeHowl) {
+      gsap.killTweensOf(this.activeHowl)
+      this.activeHowl.volume(v)
+    }
   }
 
-  public get loop() { return this.audio.loop }
-  public set loop(v: boolean) { this.audios.forEach(a => a.loop = v) }
+  public get loop() { return this.activeHowl?.loop() ?? false }
+  public set loop(v: boolean) { this.activeHowl?.loop(v) }
 
-  private setAudio({ audio, volume, fade, stopOnEnd, pauseOnEnd }: {
-    audio: HTMLAudioElement,
-    volume: number,
+  private setHowl(
+    howl: Howl,
+    targetVol: number,
     fade: number,
-    stopOnEnd?: boolean,
-    pauseOnEnd?: boolean
-  }): Promise<void> {
-    if (!audio) return Promise.resolve()
+    stopOnEnd: boolean = false,
+    pauseOnEnd: boolean = false
+  ): Promise<void> {
+    gsap.killTweensOf(howl)
 
-    gsap.killTweensOf(audio, 'volume')
-
-    const targetVol = Math.max(0, Math.min(1, volume))
+    const currentVol = howl.volume()
+    const target = Math.max(0, Math.min(1, targetVol))
 
     if (fade <= 0) {
-      audio.volume = targetVol
-      if (stopOnEnd) this.stopAudio(audio)
-      else if (pauseOnEnd) audio.pause()
+      howl.volume(target)
+      if (stopOnEnd)
+        this.destroyHowlByInstance(howl)
+      else if (pauseOnEnd)
+        howl.pause()
       return Promise.resolve()
     }
 
-    const isFadeIn = targetVol > audio.volume
-    const ease = isFadeIn ? 'power1.out' : 'power1.in'
-
     return new Promise((resolve) => {
-      gsap.to(audio, {
-        volume: targetVol,
+      const volumeProxy = { val: currentVol }
+
+      gsap.to(volumeProxy, {
+        val: target,
         duration: fade,
-        ease: ease,
-        overwrite: true,
+        ease: target > currentVol ? 'power1.out' : 'power2.in',
+        onUpdate: () => {
+          howl.volume(volumeProxy.val)
+        },
         onComplete: () => {
-          audio.volume = targetVol
-          if (stopOnEnd) this.stopAudio(audio)
-          else if (pauseOnEnd) audio.pause()
+          if (stopOnEnd)
+            this.destroyHowlByInstance(howl)
+          else if (pauseOnEnd)
+            howl.pause()
           resolve()
         },
-        onInterrupt: () => {
-          resolve()
-        }
+        onInterrupt: resolve
       })
     })
   }
 
-  private stopAudio(audio: HTMLAudioElement) {
-    gsap.killTweensOf(audio, 'volume')
-    audio.pause()
-    audio.onended = null
-    audio.src = ''
-    audio.removeAttribute('src')
-    audio.load()
+  private destroyHowl(index: number) {
+    const howl = this.howls[index]
+    if (howl) {
+      howl.stop()
+      howl.unload()
+      this.howls[index] = null
+      this.howlSrcs[index] = null
+    }
+  }
+
+  private destroyHowlByInstance(howl: Howl) {
+    const index = this.howls.indexOf(howl)
+    if (index !== -1) {
+      this.destroyHowl(index)
+    } else {
+      howl.stop()
+      howl.unload()
+    }
   }
 
   public override destroy(): void {
     this.stop()
+    if (this.preloadedHowl)
+      this.preloadedHowl.unload()
     super.destroy()
   }
 }
