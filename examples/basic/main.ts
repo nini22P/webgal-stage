@@ -1,4 +1,4 @@
-﻿import { Stage, BaseNode, SpriteNode, TypewriterNode, type Tween, VideoNode, BgmNode } from '../../src/index'
+﻿import { Stage, BaseNode, SpriteNode, TypewriterNode, type Tween, VideoNode, BgmNode, VoiceNode } from '../../src/index'
 
 const Animation = {
   shake: () => [
@@ -36,12 +36,11 @@ function initCommands({ stage, camera, typewriter, nameElement }: CommandContext
   })
 
   return {
-    say: async ({ name, text }: { name: string, text: string }) => {
-      nameElement.textContent = name
+    say: async ({ speaker, text, voice }: { speaker: string, text: string, voice?: string }) => {
+      nameElement.textContent = speaker
       typewriter.play(text, {
-        speed: 0.025, onChar: (char: string, index: number) => {
-          console.log('onChar:', char, index)
-        }
+        speed: 0.025,
+        onChar: (char: string, index: number) => console.log('onChar:', char, index)
       })
       await waitClick(() => {
         if (typewriter.isTypingActive()) {
@@ -100,6 +99,9 @@ const run = async () => {
 
   const bgm = new BgmNode({ id: 'bgm' })
   camera.addNode(bgm)
+
+  const voice = new VoiceNode({ id: 'voice' })
+  camera.addNode(voice)
 
   const dialogBox = new BaseNode({
     id: 'dialog-box',
@@ -160,7 +162,7 @@ const run = async () => {
   })
   await char.to({ opacity: 1, scale: 1.3, duration: 0.5 })
 
-  await say({ name: '？？', text: '你好！很高兴见到你。' })
+  await say({ speaker: '？？', text: '你好！很高兴见到你。' })
 
   bgm.play({
     src: 'https://cdn.pixabay.com/audio/2023/04/01/audio_cfab90ef1f.mp3',
@@ -170,16 +172,16 @@ const run = async () => {
   })
 
   camera.to({ keyframes: Animation.zoomIn() })
-  await say({ name: '？？', text: '超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试' })
+  await say({ speaker: '？？', text: '超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试超长文字测试' })
 
   char.to({ keyframes: Animation.zoomIn() })
   await camera.to({ keyframes: Animation.reset() })
 
-  say({ name: '？？', text: '正在播放视频。' })
+  say({ speaker: '？？', text: '正在播放视频。' })
   bgm.fade(0.5, 2)
   await video({ src: 'https://test-videos.co.uk/vids/bigbuckbunny/webm/vp9/1080/Big_Buck_Bunny_1080_10s_5MB.webm', skip: true })
   bgm.fade(1, 2)
-  await say({ name: '？？', text: '视频播放结束。' })
+  await say({ speaker: '？？', text: '视频播放结束。' })
 
   bgm.play({
     src: 'https://cdn.pixabay.com/audio/2021/11/23/audio_64b2dd1bce.mp3',
@@ -187,9 +189,9 @@ const run = async () => {
     volume: 1,
     fade: 2,
   })
-  await say({ name: '？？', text: '背景音乐已切换。' })
+  await say({ speaker: '？？', text: '背景音乐已切换。' })
 
-  say({ name: '', text: '点击画面重新开始' })
+  say({ speaker: '', text: '点击画面重新开始' })
   bgm.pause(2)
   await waitClick(() => {
     stage.destroy()

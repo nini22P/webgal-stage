@@ -183,14 +183,14 @@ export class BgmNode extends BaseNode {
     }
 
     return new Promise((resolve) => {
-      const volumeProxy = { val: currentVol }
+      const proxy = { val: currentVol }
 
-      gsap.to(volumeProxy, {
+      gsap.to(proxy, {
         val: target,
         duration: fade,
         ease: target > currentVol ? 'power1.out' : 'power2.in',
         onUpdate: () => {
-          howl.volume(volumeProxy.val)
+          howl.volume(proxy.val)
         },
         onComplete: () => {
           if (stopOnEnd)
