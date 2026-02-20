@@ -1,29 +1,37 @@
 import { SplashScene } from './scene/SplashScene';
 import { SceneManager } from './manager/SceneManager';
 import './style.css'
-import { Stage, BaseNode } from 'tiny-stage'
+import { Stage, DomBaseNode } from 'tiny-stage'
 import { UIManager } from './manager/UIManager';
 import CONFIG from './config/Config';
 
 const run = async () => {
   const stage = new Stage({
-    container: document.getElementById('app')!,
     id: 'root',
-    tween: { backgroundColor: '#000' },
-    data: CONFIG
+    container: document.getElementById('app')!,
+    data: CONFIG,
   });
 
-  const sceneContainer = new BaseNode({
+  const sceneContainer = new DomBaseNode({
     id: 'scene-container',
-    tween: { width: stage.data.width, height: stage.data.height }
+    type: 'container',
+    transform: { width: stage.data.width, height: stage.data.height }
   });
   stage.addNode(sceneContainer);
 
   new SceneManager(stage, sceneContainer);
 
-  const uiContainer = new BaseNode({
+  const uiContainer = new DomBaseNode({
     id: 'ui-container',
-    tween: { width: stage.data.width, height: stage.data.height, zIndex: 999, pointerEvents: 'none' }
+    type: 'container',
+    transform: {
+      width: stage.data.width,
+      height: stage.data.height,
+      zIndex: 999
+    },
+    dom: {
+      styles: { pointerEvents: 'none' }
+    }
   });
   stage.addNode(uiContainer);
 

@@ -1,54 +1,63 @@
-import { BaseNode, type BaseNodeProps } from 'tiny-stage'
+import { DomBaseNode, type NodeProps } from 'tiny-stage'
 import gsap from 'gsap'
 
 export interface ButtonNodeData {
   text?: string;
 }
 
-export interface ButtonNodeProps extends BaseNodeProps<ButtonNodeData> {
+export interface ButtonNodeProps extends Omit<NodeProps<ButtonNodeData>, 'type' | 'renderer'> {
   onClick: () => void;
 }
 
-export class ButtonNode extends BaseNode<HTMLElement, ButtonNodeData> {
+export class ButtonNode extends DomBaseNode<HTMLElement, ButtonNodeData> {
   constructor(props: ButtonNodeProps) {
-    const data: ButtonNodeData = {
-      text: 'Button',
-      ...props.data,
-    };
-
     super({
       ...props,
-      data,
       type: 'button',
-      tween: {
+      transform: {
         width: 300,
         height: 80,
-        backgroundColor: 'rgba(0, 0, 0, 0.2)',
-        border: '2px solid #fff',
-        color: '#fff',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '28px',
-        cursor: 'pointer',
-        userSelect: 'none',
-        textContent: data.text,
-        ...props.tween
+        ...props.transform
+      },
+      dom: {
+        styles: {
+          backgroundColor: 'rgba(0, 0, 0, 0.2)',
+          border: '2px solid #fff',
+          color: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '28px',
+          cursor: 'pointer',
+          userSelect: 'none',
+          ...props.dom?.styles,
+        }
       }
     });
 
-    this.element.addEventListener('mouseenter', () => {
-      this.to({ backgroundColor: 'rgba(0, 0, 0, 0.4)', scale: 1.05, duration: 0.2 });
+    this._applyData(this.data);
+
+    const el = this.renderObject;
+    el.addEventListener('mouseenter', () => {
+      this.to({ scaleX: 1.05, scaleY: 1.05, duration: 0.2 } as any);
+      gsap.to(el, { backgroundColor: 'rgba(0, 0, 0, 0.4)', duration: 0.2 });
     });
 
-    this.element.addEventListener('mouseleave', () => {
-      this.to({ backgroundColor: 'rgba(0, 0, 0, 0.2)', scale: 1, duration: 0.2 });
+    el.addEventListener('mouseleave', () => {
+      this.to({ scaleX: 1, scaleY: 1, duration: 0.2 } as any);
+      gsap.to(el, { backgroundColor: 'rgba(0, 0, 0, 0.2)', duration: 0.2 });
     });
 
-    this.element.addEventListener('click', (e) => {
+    el.addEventListener('click', (e) => {
       e.stopPropagation();
-      gsap.to(this.element, { scale: 0.9, duration: 0.1, yoyo: true, repeat: 1 });
+      gsap.to(el, { scaleX: 0.9, scaleY: 0.9, duration: 0.1, yoyo: true, repeat: 1 });
       props.onClick();
     });
+  }
+
+  protected override _applyData(data: Partial<ButtonNodeData>): void {
+    if (data.text !== undefined) {
+      this.renderObject.textContent = data.text;
+    }
   }
 }

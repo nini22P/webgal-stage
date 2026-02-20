@@ -1,4 +1,4 @@
-import { BaseNode, Stage } from "tiny-stage";
+import { type BaseNode, type Stage } from "tiny-stage";
 import { SettingsOverlay } from "../ui/overlays/SettingsOverlay";
 import { ConfirmOverlay } from '../ui/overlays/ConfirmOverlay';
 
@@ -8,19 +8,24 @@ export class UIManager {
   public settings: SettingsOverlay;
   public confirm: ConfirmOverlay;
 
-  private stage: Stage;
-  private container: BaseNode;
+  private _stage: Stage;
+  private _container: BaseNode;
 
   constructor(stage: Stage, container: BaseNode) {
-    this.stage = stage;
-    this.container = container;
+    this._stage = stage;
+    this._container = container;
 
-    this.settings = new SettingsOverlay({ id: 'settings-overlay', stage: this.stage });
-    this.confirm = new ConfirmOverlay({ id: 'confirm-overlay', stage: this.stage });
+    this.settings = new SettingsOverlay({
+      id: 'settings-overlay',
+      stage: this._stage,
+    });
+    this.confirm = new ConfirmOverlay({
+      id: 'confirm-overlay',
+      stage: this._stage,
+    });
 
-    this.container
-      .addNode(this.settings)
-      .addNode(this.confirm);
+    this._container.addNode(this.settings);
+    this._container.addNode(this.confirm);
 
     UIManager._instance = this;
   }
@@ -28,11 +33,11 @@ export class UIManager {
   public static get instance() { return this._instance; }
 
   public static show(name: 'settings' | 'confirm') {
-    this._instance[name].show();
+    (this._instance as any)[name].show();
   }
 
   public static hide(name: 'settings' | 'confirm') {
-    this._instance[name].hide();
+    (this._instance as any)[name].hide();
   }
 
   public static async confirm(text: string): Promise<boolean> {

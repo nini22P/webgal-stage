@@ -6,7 +6,7 @@ export interface DomTextNodeData {
 }
 
 export class DomTextNode extends DomBaseNode<HTMLDivElement, DomTextNodeData> {
-  constructor(props: Omit<NodeProps<DomTextNodeData>, 'type' | 'tagName'>) {
+  constructor(props: Omit<NodeProps<DomTextNodeData>, 'type' | 'tagName' | 'renderer'>) {
     super({
       ...props,
       type: 'text',

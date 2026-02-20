@@ -1,26 +1,30 @@
 import { MainMenuScene } from './MainMenuScene';
 import { SceneNode, type SceneNodeProps } from './SceneNode';
 import { SceneManager } from '../manager/SceneManager';
-import { TextNode } from '../ui/components/TextNode';
+import { DomTextNode } from 'tiny-stage';
 
 export class SplashScene extends SceneNode {
   constructor(props: SceneNodeProps) {
     super(props);
 
-    this.set({ backgroundColor: '#f2f2f2' });
+    this._element.style.backgroundColor = '#f2f2f2';
 
-    const tip = new TextNode({
+    const tip = new DomTextNode({
       id: 'tip',
       data: { text: 'Press Any Key To Start' },
-      tween: {
+      transform: {
         x: this.stage.data.width / 2,
         y: this.stage.data.height - 100,
         width: 400,
-        xPercent: -50,
-        fontSize: '32px',
-        color: '#333',
+        anchorX: 0.5,
         opacity: 0
       },
+      dom: {
+        styles: {
+          fontSize: '32px',
+          color: '#333',
+        }
+      }
     });
     this.addNode(tip);
 
@@ -30,7 +34,7 @@ export class SplashScene extends SceneNode {
       repeat: -1,
       yoyo: true,
       ease: "sine.inOut"
-    });
+    } as any);
   }
 
   async onStart() {

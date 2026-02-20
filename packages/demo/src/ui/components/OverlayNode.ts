@@ -1,37 +1,43 @@
-import { BaseNode, Stage, type BaseNodeProps } from "tiny-stage";
+import { DomBaseNode, Stage, type NodeProps } from "tiny-stage";
 
-export interface OverlayNodeProps extends BaseNodeProps {
+export interface OverlayNodeProps extends Omit<NodeProps, 'type' | 'renderer'> {
   stage: Stage;
 }
 
-export class OverlayNode extends BaseNode {
+export class OverlayNode extends DomBaseNode {
   protected stage: Stage
 
-  constructor({ stage, ...props }: OverlayNodeProps) {
+  constructor(props: OverlayNodeProps) {
+    const { stage, ...rest } = props;
     super({
-      ...props,
+      ...rest,
       type: 'overlay',
-      tween: {
+      transform: {
         width: stage.data.width,
         height: stage.data.height,
         zIndex: 100,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        display: 'none',
         opacity: 0,
-        pointerEvents: 'auto',
-        ...props.tween
+        ...rest.transform
+      },
+      dom: {
+        styles: {
+          display: 'none',
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          pointerEvents: 'auto',
+          ...rest.dom?.styles
+        }
       }
     });
     this.stage = stage;
   }
 
   async show() {
-    this.set({ display: 'block' });
-    await this.to({ opacity: 1, duration: 0.3 });
+    this.renderObject.style.display = 'block';
+    await this.to({ opacity: 1, duration: 0.3 } as any);
   }
 
   async hide() {
-    await this.to({ opacity: 0, duration: 0.3 });
-    this.set({ display: 'none' });
+    await this.to({ opacity: 0, duration: 0.3 } as any);
+    this.renderObject.style.display = 'none';
   }
 }

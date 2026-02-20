@@ -8,7 +8,7 @@ export class SettingsOverlay extends OverlayNode {
       id: 'close-settings',
       data: { text: '返回游戏' },
       onClick: () => this.hide(),
-      tween: { top: 40, right: 40 }
+      transform: { x: this.stage.data.width - 340, y: 40 }
     });
     this.addNode(closeBtn);
   }

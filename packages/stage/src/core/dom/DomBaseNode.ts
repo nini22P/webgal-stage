@@ -85,7 +85,11 @@ export class DomBaseNode<T extends HTMLElement = HTMLDivElement, TData = Record<
     const vars: gsap.TweenVars = { ...transform }
     if (transform.visible === false) vars.autoAlpha = 0
     if (transform.anchorX !== undefined || transform.anchorY !== undefined) {
-      vars.transformOrigin = `${(transform.anchorX ?? 0) * 100}% ${(transform.anchorY ?? 0) * 100}%`
+      const aX = transform.anchorX ?? 0
+      const aY = transform.anchorY ?? 0
+      vars.transformOrigin = `${aX * 100}% ${aY * 100}%`
+      vars.xPercent = -aX * 100
+      vars.yPercent = -aY * 100
     }
     return vars
   }

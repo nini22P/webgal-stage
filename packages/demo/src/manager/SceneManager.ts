@@ -1,4 +1,4 @@
-import { type BaseNode, type Stage } from "tiny-stage";
+import { type BaseNode, type Stage, DomBaseNode } from "tiny-stage";
 import type { SceneNode, SceneNodeProps } from "../scene/SceneNode";
 
 export class SceneManager {
@@ -20,13 +20,20 @@ export class SceneManager {
     props: Omit<P, 'stage' | 'container'>
   ) {
     const oldScene = this.currentScene;
-    const newScene = new SceneClass({ ...props, stage: this.stage } as unknown as P);
+    const newScene = new SceneClass({
+      ...props,
+      stage: this.stage,
+      renderer: 'dom'
+    } as unknown as P);
 
     this.container.addNode(newScene);
     this.currentScene = newScene;
 
     if (oldScene) {
-      oldScene.set({ userSelect: 'none' });
+      if (oldScene instanceof DomBaseNode) {
+        oldScene.renderObject.style.pointerEvents = 'none';
+      }
+
       oldScene.onEnd().then(() => {
         oldScene.destroy();
       });

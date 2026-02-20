@@ -1,10 +1,12 @@
-import { BaseNode, ImageNode, TypewriterNode, VideoNode, type Tween } from "tiny-stage";
+import { DomBaseNode, DomImageNode, TypewriterNode, DomVideoNode, type NodeTransform } from "tiny-stage";
 import { SceneNode, type SceneNodeProps } from "./SceneNode";
+
+export type ScriptTransform = NodeTransform & gsap.TweenVars;
 
 export type ScriptCommand =
   | { cmd: 'bg'; src: string; fade?: number }
-  | { cmd: 'image'; id: string; src: string; tween?: Tween }
-  | { cmd: 'image.to'; id: string; tween: Tween; wait?: boolean }
+  | { cmd: 'image'; id: string; src: string; transform?: ScriptTransform }
+  | { cmd: 'image.to'; id: string; transform: ScriptTransform; wait?: boolean }
   | { cmd: 'say'; name: string; text: string; }
   | { cmd: 'bgm'; src: string; volume?: number; loop?: boolean; fade?: number }
   | { cmd: 'video'; src: string; skip?: boolean }
@@ -18,44 +20,59 @@ export interface ScenarioSceneData {
 export interface ScenarioSceneProps extends SceneNodeProps<ScenarioSceneData> { }
 
 export class ScenarioScene extends SceneNode<ScenarioSceneData> {
-  protected dialogBox: BaseNode;
+  protected dialogBox: DomBaseNode;
   protected typewriter: TypewriterNode;
   protected nameElement: HTMLElement;
-  protected nameBox: BaseNode;
+  protected nameBox: DomBaseNode;
 
   constructor(props: ScenarioSceneProps) {
     super(props);
 
-    const dialogBox = new BaseNode({
+    const dialogBox = new DomBaseNode({
       id: 'dialog-box',
-      tween: {
+      type: 'container',
+      transform: {
         x: this.stage.data.width / 2,
-        bottom: 32,
         width: this.stage.data.width * 0.7,
         height: 240,
-        backgroundColor: 'rgba(228, 228, 228, 0.8)',
         opacity: 0,
         zIndex: 10,
-        xPercent: -50,
+        anchorX: 0.5,
+      },
+      dom: {
+        styles: {
+          bottom: '32px',
+          backgroundColor: 'rgba(228, 228, 228, 0.8)',
+        }
       }
     })
     this.addNode(dialogBox)
 
     const typewriter = new TypewriterNode({
       id: 'typewriter',
-      tween: { top: 20, right: 40, bottom: 20, left: 40, fontSize: 32, letterSpacing: '4px', color: '#000000' }
+      renderer: 'dom',
+      dom: {
+        styles: {
+          top: '20px', right: '40px', bottom: '20px', left: '40px',
+          fontSize: '32px', letterSpacing: '4px', color: '#000000'
+        }
+      }
     })
     dialogBox.addNode(typewriter)
 
-    const nameBox = new BaseNode({
+    const nameBox = new DomBaseNode({
       id: 'name-box',
-      tween: { x: 40, y: -40, width: 200, height: 50, backgroundColor: 'rgba(74, 85, 104, 0.9)' }
+      type: 'container',
+      transform: { x: 40, y: -40, width: 200, height: 50 },
+      dom: {
+        styles: { backgroundColor: 'rgba(74, 85, 104, 0.9)' }
+      }
     })
     dialogBox.addNode(nameBox)
 
     const nameElement = document.createElement('div')
     nameElement.style.cssText = 'position:absolute; width:100%; height:100%; color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:bold;'
-    nameBox.element.appendChild(nameElement)
+    nameBox.renderObject.appendChild(nameElement)
 
     this.nameElement = nameElement;
     this.dialogBox = dialogBox;
@@ -72,30 +89,16 @@ export class ScenarioScene extends SceneNode<ScenarioSceneData> {
   private async runScript() {
     for (const cmd of this.data.script) {
       switch (cmd.cmd) {
-        case 'bg':
-          await this.execBg(cmd);
-          break;
-        case 'image':
-          await this.execImage(cmd);
-          break;
-        case 'image.to':
-          await this.execImageTo(cmd);
-          break;
-        case 'say':
-          await this.execSay(cmd);
-          break;
+        case 'bg': await this.execBg(cmd); break;
+        case 'image': await this.execImage(cmd); break;
+        case 'image.to': await this.execImageTo(cmd); break;
+        case 'say': await this.execSay(cmd); break;
         case 'bgm':
           this.bgm.play({ src: cmd.src, volume: cmd.volume ?? 1, fade: cmd.fade ?? 0, loop: cmd.loop ?? true });
           break;
-        case 'video':
-          await this.execVideo(cmd);
-          break;
-        case 'wait':
-          await new Promise(r => setTimeout(r, cmd.time));
-          break;
-        case 'exec':
-          if (cmd.func) await cmd.func();
-          break;
+        case 'video': await this.execVideo(cmd); break;
+        case 'wait': await new Promise(r => setTimeout(r, cmd.time)); break;
+        case 'exec': if (cmd.func) await cmd.func(); break;
       }
     }
   }
@@ -108,43 +111,39 @@ export class ScenarioScene extends SceneNode<ScenarioSceneData> {
     await bg.to({ opacity: 1, duration: cmd.fade ?? 1 });
   }
 
-  private async execImage(cmd: { id: string, src: string, tween?: Tween }) {
+  private async execImage(cmd: { id: string, src: string, transform?: ScriptTransform }) {
     let image = this.findImage(cmd.id);
     if (!image) {
-      const defaultTween = {
+      const defaultTransform: ScriptTransform = {
         x: this.stage.data.width / 2,
         y: this.stage.data.height / 2,
-        xPercent: -50,
-        yPercent: -50,
-        ...cmd.tween
+        anchorX: 0.5,
+        anchorY: 0.5,
+        ...cmd.transform
       };
-      this.createImage(cmd.id, cmd.src, defaultTween);
+      this.createImage(cmd.id, cmd.src, defaultTransform);
     } else {
-      if (cmd.tween) await image.to(cmd.tween);
+      if (cmd.transform) await image.to(cmd.transform);
     }
   }
 
-  private async execImageTo(cmd: { id: string, tween: Tween, wait?: boolean }) {
+  private async execImageTo(cmd: { id: string, transform: ScriptTransform, wait?: boolean }) {
     const image = this.findImage(cmd.id);
     if (image) {
-      const anim = image.to(cmd.tween);
+      const anim = image.to(cmd.transform);
       if (cmd.wait) await anim;
     }
   }
 
-  private async execSay(cmd: { name: string, text: string, voice?: string }) {
-    if (this.dialogBox.element.style.opacity === '0') {
+  private async execSay(cmd: { name: string, text: string }) {
+    if (this.dialogBox.transform.opacity === 0) {
       await this.dialogBox.to({ opacity: 1, duration: 0.3 });
     }
 
     this.nameElement.textContent = cmd.name;
-    this.nameBox.to({ opacity: cmd.name ? 1 : 0, duration: 0.2 }); // 没名字时隐藏名字框
+    this.nameBox.to({ opacity: cmd.name ? 1 : 0, duration: 0.2 });
 
-    // 3. 播放打字机
-    this.typewriter.play(cmd.text, {
-      speed: 0.05,
-      // onChar: (char) => { /* 播放打字音效 */ }
-    });
+    await this.typewriter.play(cmd.text, { speed: 0.05 });
 
     await this.waitClick(this, () => {
       if (this.typewriter.isTypingActive()) {
@@ -156,21 +155,23 @@ export class ScenarioScene extends SceneNode<ScenarioSceneData> {
   }
 
   private async execVideo(cmd: { src: string, skip?: boolean }) {
-    const videoNode = new VideoNode({
+    const videoNode = new DomVideoNode({
       id: 'video-overlay',
+      renderer: 'dom',
       data: { src: cmd.src },
-      tween: {
+      transform: {
         width: this.stage.data.width,
         height: this.stage.data.height,
         opacity: 0,
         zIndex: 999,
-        backgroundColor: '#000',
+      },
+      dom: {
+        styles: { backgroundColor: '#000' }
       }
     });
     this.addNode(videoNode);
 
     await videoNode.to({ opacity: 1, duration: 0.5 });
-
     const playPromise = videoNode.waitEnded();
 
     if (cmd.skip) {
@@ -183,13 +184,18 @@ export class ScenarioScene extends SceneNode<ScenarioSceneData> {
     videoNode.destroy();
   }
 
-  private createImage(id: string, src: string, tween: Tween) {
-    const node = new ImageNode({ id, data: { src }, tween });
+  private createImage(id: string, src: string, transform: ScriptTransform) {
+    const node = new DomImageNode({
+      id,
+      renderer: 'dom',
+      data: { src },
+      transform
+    });
     this.camera.addNode(node);
     return node;
   }
 
-  private findImage(id: string): BaseNode | undefined {
+  private findImage(id: string): DomImageNode | undefined {
     return (this.camera as any)._children.find((c: any) => c.id === id);
   }
 }
