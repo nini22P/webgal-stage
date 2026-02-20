@@ -51,7 +51,7 @@ export class DomBaseNode<T extends HTMLElement = HTMLDivElement, TData = Record<
     transform: NodeTransform & gsap.TweenVars,
     immediate: boolean,
   ): void {
-    const vars = this._mapToGsapVars(transform)
+    const vars = this._transformToGsapVars(transform)
     if (immediate) {
       gsap.set(this._element, vars)
     } else {
@@ -81,16 +81,18 @@ export class DomBaseNode<T extends HTMLElement = HTMLDivElement, TData = Record<
     this._element.remove()
   }
 
-  private _mapToGsapVars(transform: NodeTransform): gsap.TweenVars {
-    const vars: gsap.TweenVars = { ...transform }
-    if (transform.visible === false) vars.autoAlpha = 0
-    if (transform.anchorX !== undefined || transform.anchorY !== undefined) {
-      const aX = transform.anchorX ?? 0
-      const aY = transform.anchorY ?? 0
+  private _transformToGsapVars(transform: NodeTransform): gsap.TweenVars {
+    const { anchorX, anchorY, visible, ...vars }: gsap.TweenVars = { ...transform }
+
+    if (anchorX !== undefined || anchorY !== undefined) {
+      const aX = anchorX ?? 0
+      const aY = anchorY ?? 0
       vars.transformOrigin = `${aX * 100}% ${aY * 100}%`
       vars.xPercent = -aX * 100
       vars.yPercent = -aY * 100
     }
+    if (visible === false)
+      vars.autoAlpha = 0
     return vars
   }
 }

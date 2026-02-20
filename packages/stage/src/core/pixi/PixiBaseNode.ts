@@ -38,7 +38,7 @@ export class PixiBaseNode<T extends PIXI.Container = PIXI.Container, TData = Rec
   protected _applyData(_data: Partial<TData>): void { }
 
   protected _syncToRenderer(transform: PixiNodeTransform & gsap.TweenVars['pixi'], immediate: boolean): void {
-    const vars = this._mapToPixiVars(transform)
+    const vars = this._transformToGsapVars(transform)
     if (immediate) {
       gsap.set(this._container, { pixi: vars })
     } else {
@@ -70,19 +70,28 @@ export class PixiBaseNode<T extends PIXI.Container = PIXI.Container, TData = Rec
     }
   }
 
-  private _mapToPixiVars(transform: PixiNodeTransform): gsap.TweenVars['pixi'] {
+  private _transformToGsapVars(transform: PixiNodeTransform): gsap.TweenVars['pixi'] {
     const vars: gsap.TweenVars['pixi'] = {}
 
-    if (transform.x !== undefined) vars.x = transform.x
-    if (transform.y !== undefined) vars.y = transform.y
-    if (transform.scaleX !== undefined) vars.scaleX = transform.scaleX
-    if (transform.scaleY !== undefined) vars.scaleY = transform.scaleY
-    if (transform.rotation !== undefined) vars.rotation = transform.rotation
-    if (transform.opacity !== undefined) vars.alpha = transform.opacity
-    if (transform.visible !== undefined) vars.visible = transform.visible
-    if (transform.anchorX !== undefined) vars.anchorX = transform.anchorX
-    if (transform.anchorY !== undefined) vars.anchorY = transform.anchorY
-    if (transform.zIndex !== undefined) vars.zIndex = transform.zIndex
+    const keyMap: Partial<Record<keyof PixiNodeTransform, string>> = {
+      x: 'x',
+      y: 'y',
+      scaleX: 'scaleX',
+      scaleY: 'scaleY',
+      rotation: 'rotation',
+      opacity: 'alpha',
+      visible: 'visible',
+      anchorX: 'anchorX',
+      anchorY: 'anchorY',
+      zIndex: 'zIndex',
+    }
+
+    for (const [tKey, pKey] of Object.entries(keyMap)) {
+      const value = transform[tKey as keyof PixiNodeTransform]
+      if (value !== undefined) {
+        (vars)[pKey] = value
+      }
+    }
 
     return vars
   }

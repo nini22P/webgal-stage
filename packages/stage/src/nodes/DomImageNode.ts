@@ -1,4 +1,4 @@
-import type { NodeProps } from '../core/base/BaseNode';
+import type { NodeProps } from '../core/base/BaseNode'
 import { DomBaseNode } from '../core/dom/DomBaseNode'
 
 export interface DomImageNodeData {
