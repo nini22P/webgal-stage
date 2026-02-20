@@ -1,77 +1,76 @@
-import { BaseNode, type BaseNodeProps } from '../core/BaseNode'
 import gsap from 'gsap'
+import { DomBaseNode } from '../core/dom/DomBaseNode'
+import type { NodeProps } from '../core/base/BaseNode'
 
-export type TypewriterNodeProps = Omit<BaseNodeProps, 'type' | 'tagName'>
+export interface TypewriterNodeData {
+  text?: string;
+}
 
 export interface TypewriterOptions {
   speed?: number;
-  loop?: boolean;
   onChar?: (char: string, index: number) => void;
 }
 
-export class TypewriterNode extends BaseNode<HTMLParagraphElement> {
-  private _text: string = ''
+export class TypewriterNode extends DomBaseNode<HTMLParagraphElement, TypewriterNodeData> {
   private _typeTween?: gsap.core.Tween
 
-  constructor(props: TypewriterNodeProps) {
+  constructor(props: Omit<NodeProps<TypewriterNodeData>, 'type' | 'tagName'>) {
     super({
+      ...props,
       type: 'typewriter',
-      id: props.id,
       tagName: 'p',
-      tween: {
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-word',
-        ...props.tween,
+      dom: {
+        ...props.dom,
+        styles: {
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+          ...props.dom?.styles,
+        }
       }
     })
 
-    this._text = ''
-    this.element.textContent = ''
+    this._applyData(this.data)
+  }
+
+  protected override _applyData(data: Partial<TypewriterNodeData>): void {
+    if (data.text !== undefined) {
+      this._typeTween?.kill()
+      this._element.textContent = data.text
+    }
   }
 
   public get text(): string {
-    return this._text
+    return this.data.text || ''
   }
 
-  public set text(text: string) {
-    this._text = text
-    this._typeTween?.kill()
-    this.element.textContent = text
-  }
-
-  public setText(text: string): this {
-    this._text = text
-    return this
-  }
-
-  public showText(text?: string): this {
-    if (text !== undefined) this._text = text
-    this._typeTween?.kill()
-    this.element.textContent = this._text
-    return this
+  public set text(value: string) {
+    this.updateData({ text: value })
   }
 
   public isTypingActive(): boolean {
     return this._typeTween?.isActive() ?? false
   }
 
-  public play(text?: string, options?: TypewriterOptions): Promise<this> {
+  public async play(text?: string, options?: TypewriterOptions): Promise<this> {
     const speed = options?.speed ?? 0.025
     const onChar = options?.onChar
 
-    if (text !== undefined) this._text = text
+    if (text !== undefined) {
+      this.data.text = text
+    }
+
+    const fullText = this.text
     this._typeTween?.kill()
-    this.element.textContent = ''
+    this._element.textContent = ''
 
-    if (!this._text) return Promise.resolve(this)
+    if (!fullText) return this
 
-    const chars = Array.from(this._text)
+    const chars = Array.from(fullText)
     const total = chars.length
+    const obj = { count: 0 }
+    let lastProgress = 0
 
     return new Promise((resolve) => {
-      const obj = { count: 0 }
-
-      let lastProgress = 0
 
       this._typeTween = gsap.to(obj, {
         count: total,
@@ -82,7 +81,7 @@ export class TypewriterNode extends BaseNode<HTMLParagraphElement> {
 
           if (progress !== lastProgress) {
             const currentText = chars.slice(0, progress).join('')
-            this.element.textContent = currentText
+            this._element.textContent = currentText
 
             for (let i = lastProgress; i < progress; i++) {
               if (this._typeTween?.isActive()) {
@@ -94,7 +93,7 @@ export class TypewriterNode extends BaseNode<HTMLParagraphElement> {
           }
         },
         onComplete: () => {
-          this.element.textContent = this._text
+          this._element.textContent = fullText
           this._typeTween = undefined
           resolve(this)
         },
@@ -110,13 +109,13 @@ export class TypewriterNode extends BaseNode<HTMLParagraphElement> {
     if (this._typeTween?.isActive()) {
       this._typeTween.progress(1)
     } else {
-      this.element.textContent = this._text
+      this._element.textContent = this.text
     }
     return this
   }
 
-  public override destroy(): void {
+  protected override _onDestroy(): void {
     this._typeTween?.kill()
-    super.destroy()
+    super._onDestroy()
   }
 }

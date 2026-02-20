@@ -1,16 +1,15 @@
 import gsap from 'gsap'
 import { Logger } from '../utils/Logger'
-import { BaseNode, type BaseNodeProps } from '../core/BaseNode'
+import type { NodeProps } from '../core/base/BaseNode'
+import { DomBaseNode } from '../core/dom/DomBaseNode'
 
-export type BgmNodeProps = Omit<BaseNodeProps, 'type' | 'tagName'>
-
-export class BgmNode extends BaseNode {
+export class BgmNode extends DomBaseNode {
 
   private _audios: [HTMLAudioElement, HTMLAudioElement]
   private _currentIndex: number = 0
   private _targetVolume: number = 1
 
-  constructor(props: BgmNodeProps) {
+  constructor(props: Omit<NodeProps, 'type' | 'tagName'>) {
     super({ ...props, type: 'bgm' })
 
     this._audios = [new Audio(), new Audio()]

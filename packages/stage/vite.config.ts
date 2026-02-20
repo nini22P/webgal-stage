@@ -11,7 +11,7 @@ export default defineConfig({
       formats: ['es'],
     },
     rollupOptions: {
-      external: ['gsap', 'howler'],
+      external: ['gsap', 'howler', 'pixi.js'],
     },
     sourcemap: true,
     emptyOutDir: true,

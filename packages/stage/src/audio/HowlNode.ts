@@ -1,6 +1,7 @@
 import gsap from 'gsap'
 import { Howl } from 'howler'
-import { BaseNode, type BaseNodeProps } from '../core/BaseNode'
+import { DomBaseNode } from '../core/dom/DomBaseNode'
+import type { NodeProps } from '../core/base/BaseNode'
 
 export interface SoundInstance {
   id: number;
@@ -16,17 +17,17 @@ export interface HowlInstance {
   lastUsed: number;
 }
 
-export interface HowlNodeProps extends BaseNodeProps {
+export interface HowlNodeProps extends NodeProps {
   poolSize?: number
 }
 
-export abstract class HowlNode extends BaseNode {
+export abstract class HowlNode extends DomBaseNode {
   protected _howls: Map<string, HowlInstance> = new Map()
   protected _poolSize: number
 
   private _howlTweens: Map<string, { proxy: { volume: number } }> = new Map()
 
-  constructor(props: BaseNodeProps & { poolSize?: number }) {
+  constructor(props: HowlNodeProps) {
     super(props)
     this._poolSize = props.poolSize ?? 10
   }
